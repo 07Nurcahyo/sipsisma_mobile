@@ -1,43 +1,46 @@
-import { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
-
-// name:bulbasaur  https://pokeapi.co/api/v2/pokemon/1
-
-interface Pokemon {
-  name: string;
-  url: string;
-}
+import { router } from "expo-router";
+import { Button, Platform, Text, View } from "react-native";
+import { getItem, removeItem } from "../lib/storage";
 
 export default function Index() {
-  // membuat variable 
-  const [pokemons, setPokemons] = useState<Pokemon[]>([]);
 
-  useEffect(() => {
-    // fetch api
-    fetchPokemons()
-  }, [])
+  async function logout() {
+    // await SecureStore.deleteItemAsync("user_token");
 
-  async function fetchPokemons() {
-    try {
-      const response = await fetch(
-        "https://pokeapi.co/api/v2/pokemon/?limit=20"
+    const refreshToken = await getItem("refresh_token");
+
+    if (Platform.OS !== "web" && refreshToken) {
+      await fetch (
+        "https://apps.sekolahsabilillah.sch.id/api/auth/logout",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({refresh_token: refreshToken}),
+        }
       );
-      const data = await response.json();
-
-      console.log(data);
-      setPokemons(data.results);
-    } catch(e){
-      console.log(e);
     }
+
+    await removeItem("user_token");
+    await removeItem("refresh_token");
+
+    router.replace("/login");
   }
 
   return (
-    <ScrollView>
-      {pokemons.map((pokemon) => (
-        <View key={pokemon.name}>
-          <Text>{pokemon.name}</Text>
-        </View>
-      ))}
-    </ScrollView>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Text>Edit app/index.tsx to edit this screen.</Text>
+      {/* <Button title="Ke Coba" onPress={() => router.push("/coba")} /> */}
+      <Button title="Percobaan" onPress={() => router.push("/pokemon")}></Button>
+      <Button title="Logout" onPress={logout}></Button>
+    </View>
   );
 }
